@@ -1,49 +1,59 @@
 import os
-from groq import Groq
-import streamlit as st
+from groq import Groq, GroqError
 
-def get_groq_client():
+
+def generate_answer(best_faq, user_question, business_name, tone):
     """
-    Returns a Groq client using Streamlit secrets (cloud)
-    or environment variables (local fallback).
+    Hardened Groq integration.
+    This function will NEVER crash the Streamlit app.
     """
-    api_key = None
 
-    # Streamlit Cloud
-    if "GROQ_API_KEY" in st.secrets:
-        api_key = st.secrets["GROQ_API_KEY"]
+    api_key = os.getenv("GROQ_API_KEY")
 
-    # Local fallback
-    elif os.getenv("GROQ_API_KEY"):
-        api_key = os.getenv("GROQ_API_KEY")
+    # 1️⃣ Absolute guard: no key
+    if not api_key or not api_key.startswith("gsk_"):
+        return (
+            "Our AI service is temporarily unavailable. "
+            "Please contact our support team for assistance."
+        )
 
-    else:
-        raise RuntimeError("GROQ_API_KEY is not set")
-
-    return Groq(api_key=api_key)
-
-
-def generate_answer(context, question, business_name, tone):
-    client = get_groq_client()
-
-    prompt = f"""
-You are a professional customer support assistant for {business_name}.
-Tone: {tone}
-
-Answer clearly and professionally using ONLY the FAQ below.
-Do not hallucinate.
-
-FAQ:
-{context}
-
-User Question:
-{question}
+    system_prompt = f"""
+You are a professional customer support agent for {business_name}.
+Tone: {tone}.
+Answer clearly and politely using ONLY the provided FAQ.
 """
 
-    response = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.3,
-    )
+    user_prompt = f"""
+FAQ:
+{best_faq}
 
-    return response.choices[0].message.content.strip()
+Customer Question:
+{user_question}
+"""
+
+    try:
+        client = Groq(api_key=api_key)
+
+        response = client.chat.completions.create(
+            model="llama3-70b-8192",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0.4,
+            max_tokens=300,
+        )
+
+        return response.choices[0].message.content.strip()
+
+    except GroqError:
+        return (
+            "I’m unable to retrieve that information right now. "
+            "Please contact our support team for accurate assistance."
+        )
+
+    except Exception:
+        return (
+            "Something went wrong on our side. "
+            "Please contact our support team for assistance."
+        )
