@@ -1,0 +1,8 @@
+Q: What are your opening hours?
+A: We are open from 9 AM to 10 PM every day.
+
+Q: Do you offer home delivery?
+A: Yes, delivery is available within 5 km.
+
+Q: What payment methods do you accept?
+A: Cash, UPI, credit and debit cards.
