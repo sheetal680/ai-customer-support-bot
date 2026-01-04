@@ -1,6 +1,1 @@
-streamlit
-groq
-numpy
-scikit-learn
-sentence-transformers
-torch
+streamlit>=1.31

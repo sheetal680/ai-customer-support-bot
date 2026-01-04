@@ -1,7 +1,18 @@
-from sklearn.metrics.pairwise import cosine_similarity
+def retrieve_best_faq(user_question, faqs):
+    user_question = user_question.lower()
 
-def retrieve_best_faq(question_vec, faq_vecs, faqs):
-    scores = cosine_similarity([question_vec], faq_vecs)[0]
-    best_index = scores.argmax()
-    best_score = scores[best_index]
-    return faqs[best_index], best_score
+    best_score = 0
+    best_faq = None
+
+    for faq in faqs:
+        overlap = sum(
+            1 for word in faq["question"].split()
+            if word in user_question
+        )
+        score = overlap / max(len(faq["question"].split()), 1)
+
+        if score > best_score:
+            best_score = score
+            best_faq = faq
+
+    return best_faq, best_score

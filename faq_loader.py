@@ -1,19 +1,19 @@
-from embedder import get_embedding
+from pathlib import Path
 
-def load_faqs(path="data/faqs.txt"):
-    """
-    Loads FAQ blocks from a text file.
-    Each FAQ is separated by a blank line.
-    """
-    with open(path, "r", encoding="utf-8") as f:
-        return [
-            block.strip()
-            for block in f.read().split("\n\n")
-            if block.strip()
-        ]
+FAQ_FILE = Path("data/faqs.txt")
 
-def build_faq_vectors(faqs):
-    """
-    Converts FAQs into vector embeddings.
-    """
-    return [get_embedding(faq) for faq in faqs]
+def load_faqs():
+    faqs = []
+    question = None
+
+    with open(FAQ_FILE, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line.startswith("Q:"):
+                question = line.replace("Q:", "").strip().lower()
+            elif line.startswith("A:") and question:
+                answer = line.replace("A:", "").strip()
+                faqs.append({"question": question, "answer": answer})
+                question = None
+
+    return faqs

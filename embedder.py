@@ -1,10 +1,15 @@
-from sentence_transformers import SentenceTransformer
+import os
+from groq import Groq
 
-# Load model once (fast + cached)
-model = SentenceTransformer("all-MiniLM-L6-v2")
+client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+
 
 def get_embedding(text: str):
     """
-    Convert text into a numeric vector
+    Generates vector embedding using Groq
     """
-    return model.encode(text)
+    response = client.embeddings.create(
+        model="text-embedding-3-small",
+        input=text
+    )
+    return response.data[0].embedding
